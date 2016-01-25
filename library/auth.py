@@ -1,6 +1,4 @@
-from library import app
-from library.app import create_app
-from library.app import spotify_connect
+from library.app import app
 from config import BaseConfig
 
 from flask import render_template, request, redirect, url_for
@@ -10,43 +8,67 @@ import spotipy.util as util
 import os
 import requests
 
-
-@app.route('/')
-def auth_check():
+@app.route('/', methods=['POST', 'GET'])
+def index():
+    print ("testetste {}".format(app))
+    if request.method == 'GET':
+        return login()
+    elif request.method == 'POST':
+        print (request.form)
+        return "Welcome, ".format(request.form['username'])
     '''
     check if with baseconfig returns good
     if BaseConfig is True:
-        return rendter_template('preferences.html')
+        return render_template('preferences.html')
     else:
         return login
     '''
-    pass
 
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-    '''prompts user to login via OAuth2 through Spotify
+def oauth_prep(config=BaseConfig, scope='user-library-read'):
+    ''' Connect to Spotify using spotipy & our app config credentials'. '''
+
+    oauth = spotipy.oauth2.SpotifyOAuth(client_id=BaseConfig.CLIENT_ID,
+                                client_secret=BaseConfig.CLIENT_SECRET,
+                                redirect_uri=BaseConfig.REDIRECT_URI,
+                                scope=scope)
+    return oauth
+
+
+#@app.route('/login', methods=['POST', 'GET'])
+def login(config=BaseConfig, scope='user-library-read'):
+    '''
+    prompts user to login via OAuth2 through Spotify
     this shows up in index.html
 
     if current_user.is_authenticated():
         return redirect(url_for('choose_parameters'))
 
-    form
     '''
-    oauth = spotify_connect(app)
-    payload = {'client_id': oauth.client_id, 
+    # utility of spotify.oauth2.SpotifyOauth
+    # lets us store everythin in 1 container, as well as give us the auth URL
+
+    oauth = oauth_prep(config, scope)
+    payload = {'client_id': oauth.client_id,
             'response_type': 'code', 'redirect_uri': oauth.redirect_uri,
             'scope': oauth.scope}
     r = requests.get(oauth.OAUTH_AUTHORIZE_URL, params=payload)
-    return render_template('login.html', oauth=r.url)
+    return (r.url)
 
 
 @app.route('/home', methods=['POST', 'GET'])
-def home():
-    oauth = spotify_connect(app)
-    response = oauth.get_access_token(request.args['code'])
-    token = response['access_token']
+def home(config=BaseConfig, scope='user-library-read'):
+    if request.method == 'GET':
+        if not 'code' in request.args:
+            oauth = login(config=BaseConfig, scope=scope)
+            return render_template('home.html', login=False, oauth=oauth)
+        else:
+            oauth = oauth_prep(config)
+            response = oauth.get_access_token(request.args['code'])
+            token = response['access_token']
 
-    s = spotipy.Spotify(auth=token)
-    offset = 0
-    albums = s.current_user_saved_tracks(limit=50, offset=offset)
-    return render_template('home.html', albums=albums['items'])
+            s = spotipy.Spotify(auth=token)
+            offset = 0
+            albums = s.current_user_saved_tracks(limit=50, offset=offset)
+            return render_template('home.html', albums=albums['items'],
+                                    login=True)
+

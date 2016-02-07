@@ -1,49 +1,15 @@
 {% extends 'base.html' %}
 
 
-{% block flash %}
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <p id="flash">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-{% endblock %}
-
 {% block login %}
 
-    {% if login == false %}
     <div class="inner cover">
             <h1 class="cover-heading">Let's start your ideal Festival</h1>
             <p class="lead">Festify will create the perfect festival base on the musical taste of the awesome people that will
                 enjoy this musical experience.</p>
             <br>
 
-                <a href="{{ oauth }}"><input name="submit" class="btn btn-success btn-lg" value="Create Festival" type="button"></input></a>
-                        <nav>
-                            <ul>
-                                <li id="login">
-                                    <a class="btn btn-success btn-lg" href="{{ oauth }}" margin-right="40px" type="button">Join Festival  </a>
-                                        <form id="login-form" action="{{ url_for('home', ) }}" method="post">
-                                            <p><input id="festi-text" class="text" type="text" name="festival_id" placeholder="Festival ID" /></p>
-                                            <p><input class="btn btn-primary btn-lg" id="festivalSubmit" type="submit" value="Submit" /></p>
-                                        </form>
-                                </li>
-                            </ul>
-                        </nav>
-    </div>
-   	{% else %}
-
-    <div class="inner cover">
-            <h1 class="cover-heading">Let's start your ideal Festival</h1>
-            <p class="lead">Festify will create the perfect festival base on the musical taste of the awesome people that will
-                enjoy this musical experience.</p>
-            <br>
-
-                <a href="{{ url_for('new') }}"><input name="submit" class="btn btn-success btn-lg" value="Create Festival" type="button"></input></a>
+                <a href="{{ url_for('home') }}"><input name="submit" class="btn btn-success btn-lg" value="Create Festival" type="button"></input></a>
                         <nav>
                             <ul>
                                 <li id="login">
@@ -57,7 +23,6 @@
                         </nav>
     </div>
 
-    {% endif %}
 
 {% endblock %}
 

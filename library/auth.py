@@ -26,6 +26,7 @@ import db
 
 festival_id = None
 did_user_sel_parameters = False
+login_aux = False
 
 
 def oauth_prep(config=None, scope=['user-library-read']):
@@ -145,10 +146,16 @@ def home(config=BaseConfig):
 
     code = request.args.get('code')
     active_user = session.get('user_id')
+    global login_aux
+    global festival_id
     if request.method == 'GET':
-        if not code and not active_user:
+        if not code and not active_user and not login_aux:
+            login_aux = True
+            return render_template('home.html', login=False)
+        elif login_aux:
+            login_aux = False
             auth_url = login()
-            return render_template('home.html', login=False, oauth=auth_url)
+            return redirect(auth_url)
         else:
 
             if not User.users or not session.get('user_id'):
@@ -166,10 +173,16 @@ def home(config=BaseConfig):
             s = spotipy.Spotify(auth=current_user)
 
     if request.method == 'POST':
-        url_slug = request.form['festival_id']
+        festival_id = request.form['festival_id']
+        url_slug = festival_id
         print ("FESTIVAL ID OR URL SLUGGY IS {}".format(url_slug))
-        return redirect(url_for('join', url_slug=url_slug))
-    return render_template('home.html', login=True)
+        login_aux = False
+        auth_url = login()
+        return redirect(auth_url)
+    if festival_id:
+        return redirect(url_for('join', url_slug=festival_id))
+    else:
+        return redirect(url_for('new'))
 
 
 @app.route('/festival/join/<url_slug>', methods=['GET'])

@@ -158,18 +158,12 @@ class AsyncAdapter(object):
                                                       'catalog': catalog})
             insertion_results = random_catalog.AsyncResult(task.task_id)
             tasks.append(insertion_results)
-
-            while tasks:
-                for t in tasks:
-                    if t.state == 'SUCCESS':
-                        tasks.remove(t)
-                    else:
-                        continue
-        print 'Catalog processing complete..'
+        print 'Catalog now has {} items.'.format(len(catalog.get_item_dicts(results=100)))
         return
 
     def non_async_populate_catalog(self, artists, catalog):
-        return random_catalog(artists, catalog)
+        limit = 15
+        return random_catalog(artists, limit, catalog)
 
 
 @celery.task(name='saved_tracks')
